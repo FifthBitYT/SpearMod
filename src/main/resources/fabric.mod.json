@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "spearmod",
+	"version": "1.0.0",
+	"name": "Spear Mod",
+	"description": "Adds a diamond spear weapon with charging and lunging mechanics.",
+	"authors": [
+		"YourName"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "MIT",
+	"icon": "assets/spearmod/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.fifthbit.spearmod.SpearMod"
+		],
+		"client": [
+			"com.fifthbit.spearmod.SpearModClient"
+		]
+	},
+	"mixins": [],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {}
+}

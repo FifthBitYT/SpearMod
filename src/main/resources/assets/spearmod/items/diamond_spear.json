@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type" : "minecraft:model",
+    "model": "spearmod:item/diamond_spear"
+  }
+}
