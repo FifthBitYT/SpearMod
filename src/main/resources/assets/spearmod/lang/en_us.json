@@ -1,4 +1,5 @@
 {
   "item.spearmod.diamond_spear": "Diamond Spear",
-  "item.spearmod.diamond_spear.tooltip": "Hold right-click to charge, release to lunge"
+  "item.spearmod.diamond_spear.tooltip": "Hold right-click to charge, release to lunge",
+  "item.spearmod.diamond_spear_head": "Diamond Spear Head"
 }

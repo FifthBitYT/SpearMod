@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": "minecraft:stick",
+    "X": "spearmod:diamond_spear_head"
+  },
+  "pattern": [
+    "  X",
+    " # ",
+    "#  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "spearmod:diamond_spear"
+  }
+}
+

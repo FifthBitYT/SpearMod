@@ -16,11 +16,20 @@ public class ModItems {
     public static final RegistryKey<Item> DIAMOND_SPEAR_KEY = RegistryKey.of(RegistryKeys.ITEM,
             Identifier.of(SpearMod.MOD_ID, "diamond_spear"));
 
-    // Then register the item with the key
+    public static final RegistryKey<Item> DIAMOND_SPEAR_HEAD_KEY = RegistryKey.of(RegistryKeys.ITEM,
+            Identifier.of(SpearMod.MOD_ID, "diamond_spear_head"));
+
+    // Then register the items with the key
     public static final Item DIAMOND_SPEAR = Registry.register(
             Registries.ITEM,
             DIAMOND_SPEAR_KEY,
             new DiamondSpearItem(new Item.Settings().registryKey(DIAMOND_SPEAR_KEY).maxDamage(1561))
+    );
+
+    public static final Item DIAMOND_SPEAR_HEAD = Registry.register(
+            Registries.ITEM,
+            DIAMOND_SPEAR_HEAD_KEY,
+            new Item(new Item.Settings().registryKey(DIAMOND_SPEAR_HEAD_KEY))
     );
 
     public static void registerItems() {
@@ -28,6 +37,7 @@ public class ModItems {
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(entries -> {
             entries.add(DIAMOND_SPEAR);
+            entries.add(DIAMOND_SPEAR_HEAD);
         });
 
         SpearMod.LOGGER.info("Items registered successfully!");

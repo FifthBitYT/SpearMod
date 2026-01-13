@@ -22,10 +22,10 @@ import java.util.List;
 public class DiamondSpearItem extends Item {
     private static final int MAX_CHARGE_TIME = 100; // 5 seconds for max charge
     private static final float BASE_DAMAGE = 4.0F; // Quick jab damage (less than sword)
-    private static final float MAX_DAMAGE = 30.0F; // Massive damage like mace when fully charged
+    private static final float MAX_DAMAGE = 160F; // Massive damage like mace when fully charged
     private static final float KNOCKBACK = 2.0F; // Extra knockback
     private static final double LUNGE_DISTANCE = 3.0;
-    private static final int LUNGE_COOLDOWN = 70; // 3.5 seconds cooldown
+    private static final int LUNGE_COOLDOWN = 50; // 3.5 seconds cooldown
 
     public DiamondSpearItem(Settings settings) {
         super(settings);
@@ -171,7 +171,6 @@ public class DiamondSpearItem extends Item {
         }
     }
 
-    // Helper methods for cooldown management
     private boolean isOnCooldown(ItemStack stack) {
         NbtComponent nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
         NbtCompound compound = nbt.copyNbt();
@@ -180,6 +179,7 @@ public class DiamondSpearItem extends Item {
             return false;
         }
 
+        // Handle Optional<Long> return type
         long cooldownEnd = compound.getLong("CooldownEnd").orElse(0L);
         return System.currentTimeMillis() < cooldownEnd;
     }
@@ -191,6 +191,97 @@ public class DiamondSpearItem extends Item {
         // Convert ticks to milliseconds (20 ticks = 1 second = 1000ms)
         long cooldownTime = ticks * 50; // 50ms per tick
         nbt.putLong("CooldownEnd", System.currentTimeMillis() + cooldownTime);
+
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+    }
+
+    // Get charge progress for animations (0.0 to 1.0)
+    public static float getChargeProgress(ItemStack stack, LivingEntity user) {
+        if (user == null || !user.isUsingItem() || user.getActiveItem() != stack) {
+            return 0.0f;
+        }
+
+        int useTicks = stack.getMaxUseTime(user) - user.getItemUseTimeLeft();
+        return Math.min(useTicks / 20.0f, 1.0f);
+    }
+
+    // Get animation stage (0 = pulling back, 1 = thrust forward)
+    public static float getAnimationStage(ItemStack stack, LivingEntity user) {
+        if (user == null || !user.isUsingItem() || user.getActiveItem() != stack) {
+            return 0.0f;
+        }
+
+        int useTicks = stack.getMaxUseTime(user) - user.getItemUseTimeLeft();
+
+        // Pull back phase: 0-10 ticks (0.5 seconds)
+        if (useTicks <= 10) {
+            return 0.3f; // Pulling back
+        }
+        // Thrust forward phase: 10+ ticks
+        else {
+            return 0.7f; // Thrusting forward
+        }
+    }
+
+    // Lunge tracking helpers
+    private void markLunging(ItemStack stack, float damage) {
+        NbtComponent currentNbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound nbt = currentNbt.copyNbt();
+        nbt.putBoolean("Lunging", true);
+        nbt.putFloat("LungeDamage", damage);
+        nbt.putLong("LungeStartTime", System.currentTimeMillis());
+        nbt.putString("HitEntities", ""); // Reset hit list
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+    }
+
+    private boolean isLunging(ItemStack stack) {
+        NbtComponent nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound compound = nbt.copyNbt();
+        return compound.contains("Lunging") && compound.getBoolean("Lunging").orElse(false);
+    }
+
+    private float getLungeDamage(ItemStack stack) {
+        NbtComponent nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound compound = nbt.copyNbt();
+        return compound.contains("LungeDamage") ? compound.getFloat("LungeDamage").orElse(BASE_DAMAGE) : BASE_DAMAGE;
+    }
+
+    private boolean hasLungedFor(ItemStack stack, int ticks) {
+        NbtComponent nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound compound = nbt.copyNbt();
+        if (!compound.contains("LungeStartTime")) return true;
+
+        long startTime = compound.getLong("LungeStartTime").orElse(0L);
+        long elapsed = System.currentTimeMillis() - startTime;
+        return elapsed >= (ticks * 50); // 50ms per tick
+    }
+
+    private void clearLungeState(ItemStack stack) {
+        NbtComponent currentNbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound nbt = currentNbt.copyNbt();
+        nbt.remove("Lunging");
+        nbt.remove("LungeDamage");
+        nbt.remove("LungeStartTime");
+        nbt.remove("HitEntities");
+        stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+    }
+
+    private boolean hasHitEntity(ItemStack stack, java.util.UUID entityId) {
+        NbtComponent nbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound compound = nbt.copyNbt();
+        if (!compound.contains("HitEntities")) return false;
+
+        String hitList = compound.getString("HitEntities").orElse("");
+        return hitList.contains(entityId.toString());
+    }
+
+    private void addHitEntity(ItemStack stack, java.util.UUID entityId) {
+        NbtComponent currentNbt = stack.getOrDefault(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+        NbtCompound nbt = currentNbt.copyNbt();
+
+        String hitList = nbt.contains("HitEntities") ? nbt.getString("HitEntities").orElse("") : "";
+        hitList += entityId.toString() + ";";
+        nbt.putString("HitEntities", hitList);
 
         stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
     }
